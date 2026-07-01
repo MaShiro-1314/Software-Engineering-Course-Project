@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>校园AI失物招领</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #f4f7fb;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 15px 10px 30px;
+        }
+        /* 手机卡片容器 */
+        .app-container {
+            max-width: 420px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: 0 20px 50px rgba(0, 20, 50, 0.12);
+            overflow: hidden;
+            padding: 20px 16px 30px;
+            position: relative;
+        }
+        /* 状态栏模拟 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            color: #1a2639;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 0 4px 12px;
+            border-bottom: 1px solid #eef2f7;
+        }
+        /* 头部标题 */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0 10px;
+        }
+        .app-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0a2540;
+            letter-spacing: 1px;
+        }
+        .app-header .sub {
+            background: #eef5ff;
+            color: #2b6ed7;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        /* 轮播图区  */
+        .banner {
+            background: linear-gradient(145deg, #d9e6f2, #b6cde0);
+            border-radius: 28px;
+            height: 140px;
+            margin: 12px 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1f3a5f;
+            font-weight: 600;
+            font-size: 18px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 150" width="400" height="150"><rect width="400" height="150" fill="%23d9e6f2"/><circle cx="70" cy="80" r="30" fill="%23aac0d9" opacity="0.6"/><circle cx="310" cy="50" r="45" fill="%23b7cee8" opacity="0.4"/><text x="120" y="70" font-family="Arial" font-size="28" font-weight="bold" fill="%230a2540">🏫 南信大 · 失物招领</text><text x="125" y="105" font-family="Arial" font-size="18" fill="%232b4b72">智能匹配 · 快速找回</text></svg>');
+            background-size: cover;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        /* 功能网格 */
+        .grid-nav {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 18px 0 22px;
+        }
+        .grid-item {
+            background: #f8fafd;
+            border-radius: 18px;
+            padding: 14px 2px;
+            text-align: center;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .grid-item:active {
+            background: #e8eff8;
+            transform: scale(0.94);
+        }
+        .grid-item .icon {
+            font-size: 28px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .grid-item span {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1f2a44;
+        }
+
+        /* 内容面板 – 页面切换 */
+        .page-panel {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 8px 4px 6px;
+            min-height: 320px;
+        }
+        .page {
+            display: none;
+            animation: fade 0.2s ease;
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes fade {
+            0% { opacity: 0.5; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 表单卡片 */
+        .form-card {
+            background: #f8fafd;
+            border-radius: 24px;
+            padding: 20px 16px;
+            margin-top: 6px;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #1f2a44;
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #dbe1ec;
+            border-radius: 30px;
+            font-size: 15px;
+            background: white;
+            outline: none;
+            transition: 0.15s;
+        }
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: #2b6ed7;
+            box-shadow: 0 0 0 4px rgba(43,110,215,0.08);
+        }
+        .form-group textarea {
+            border-radius: 20px;
+            resize: vertical;
+            min-height: 80px;
+        }
+        .btn-primary {
+            width: 100%;
+            background: #1f3a6b;
+            border: none;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            padding: 16px;
+            border-radius: 60px;
+            letter-spacing: 2px;
+            transition: 0.15s;
+            box-shadow: 0 10px 20px -8px rgba(26, 55, 110, 0.25);
+            cursor: pointer;
+        }
+        .btn-primary:active {
+            transform: scale(0.96);
+            background: #0f284f;
+        }
+        .btn-secondary {
+            background: #e2eaf6;
+            color: #1f3a6b;
+            width: 100%;
+            border: none;
+            font-weight: 600;
+            padding: 14px;
+            border-radius: 60px;
+            font-size: 16px;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 12px;
+        }
+        .item-card {
+            background: #f8fafd;
+            border-radius: 24px;
+            padding: 16px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 6px solid #2b6ed7;
+        }
+        .item-card .info h4 {
+            font-size: 17px;
+            color: #0a1e38;
+        }
+        .item-card .info p {
+            color: #4d5f7a;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+        .tag {
+            background: #dce6f5;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* 底部tab切换 */
+        .bottom-tab {
+            display: flex;
+            justify-content: space-around;
+            background: #f2f6fc;
+            border-radius: 48px;
+            margin-top: 24px;
+            padding: 6px 6px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 12px 0;
+            font-weight: 600;
+            font-size: 15px;
+            color: #3f4e6b;
+            flex: 1;
+            border-radius: 40px;
+            transition: 0.15s;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            background: #ffffff;
+            color: #0a2540;
+            box-shadow: 0 4px 12px rgba(0,20,40,0.08);
+        }
+        .tab-btn:active {
+            opacity: 0.6;
+        }
+
+        /* 辅助 */
+        .text-muted {
+            color: #7a8aa3;
+            font-size: 14px;
+            text-align: center;
+            padding: 20px 0 6px;
+        }
+        .mt-2 { margin-top: 16px; }
+        .flex-center { display: flex; align-items: center; gap: 6px; }
+
+        .mock-ai-badge {
+            background: #1f3a6b;
+            color: white;
+            border-radius: 60px;
+            padding: 8px 20px;
+            font-size: 15px;
+            display: inline-block;
+            margin: 8px 0 10px;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #e7edf6;
+            margin: 16px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container" id="app">
+
+    <!-- 状态栏 + 头部 -->
+    <div class="status-bar">
+        <span>📶 校园网</span>
+        <span>📱 南信大 · 智能失物</span>
+        <span>🔋 100%</span>
+    </div>
+    <div class="app-header">
+        <h1>🧑‍🎓 失物招领</h1>
+        <div class="sub">AI 匹配</div>
+    </div>
+
+    <!-- 轮播图 Banner -->
+    <div class="banner"></div>
+
+    <!-- 快捷功能网格 -->
+    <div class="grid-nav">
+        <div class="grid-item" onclick="switchPage('publishLost')">
+            <span class="icon">📕</span>
+            <span>发布失物</span>
+        </div>
+        <div class="grid-item" onclick="switchPage('publishFound')">
+            <span class="icon">📗</span>
+            <span>发布拾物</span>
+        </div>
+        <div class="grid-item" onclick="switchPage('match')">
+            <span class="icon">🤖</span>
+            <span>AI 匹配</span>
+        </div>
+        <div class="grid-item" onclick="switchPage('profile')">
+            <span class="icon">👤</span>
+            <span>个人中心</span>
+        </div>
+    </div>
+
+    <!-- 动态页面面板 -->
+    <div class="page-panel">
+        <!-- 首页：默认显示失物列表 -->
+        <div id="page-home" class="page active">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="color:#1f2a44;">📋 近期失物</h3>
+                <span style="font-size:13px; color:#6f7f9a;">共 6 条</span>
+            </div>
+            <div class="item-list" id="lostList">
+                <!-- 由 js 动态渲染 -->
+            </div>
+            <div class="text-muted">—— 点击下方发布，帮物品回家 ——</div>
+        </div>
+
+        <!-- 发布失物 -->
+        <div id="page-publishLost" class="page">
+            <h3 style="color:#1f2a44;">📕 发布失物信息</h3>
+            <div class="form-card">
+                <div class="form-group">
+                    <label>物品名称</label>
+                    <input type="text" id="lostName" placeholder="如：黑色钱包">
+                </div>
+                <div class="form-group">
+                    <label>丢失地点</label>
+                    <input type="text" id="lostPlace" placeholder="如：明德楼 N205">
+                </div>
+                <div class="form-group">
+                    <label>联系方式</label>
+                    <input type="text" id="lostContact" placeholder="手机号 / QQ">
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <textarea id="lostDesc" placeholder="描述物品特征…"></textarea>
+                </div>
+                <button class="btn-primary" onclick="submitLost()">提交失物信息</button>
+            </div>
+        </div>
+
+        <!-- 发布拾物 -->
+        <div id="page-publishFound" class="page">
+            <h3 style="color:#1f2a44;">📗 发布拾物信息</h3>
+            <div class="form-card">
+                <div class="form-group">
+                    <label>拾到物品</label>
+                    <input type="text" id="foundName" placeholder="如：校园卡">
+                </div>
+                <div class="form-group">
+                    <label>拾到地点</label>
+                    <input type="text" id="foundPlace" placeholder="如：中苑食堂">
+                </div>
+                <div class="form-group">
+                    <label>拾物者</label>
+                    <input type="text" id="founder" placeholder="你的姓名或学号">
+                </div>
+                <div class="form-group">
+                    <label>存放位置</label>
+                    <input type="text" id="foundStorage" placeholder="如：失物招领处 3号柜">
+                </div>
+                <button class="btn-primary" onclick="submitFound()">提交拾物信息</button>
+            </div>
+        </div>
+
+        <!-- AI 匹配 -->
+        <div id="page-match" class="page">
+            <h3 style="color:#1f2a44;">🤖 AI 智能匹配</h3>
+            <div style="background:#eaf1fb; border-radius:28px; padding:18px 16px; margin:12px 0;">
+                <p style="font-weight:500;">📸 上传物品图片，AI自动识别并匹配相似记录</p>
+                <div style="background:white; border-radius:40px; padding:12px 16px; margin-top:12px; border:1px dashed #1f3a6b; text-align:center; color:#3f5a7a;">
+                    ⬆️ 点击上传图片 (模拟)
+                </div>
+                <button class="btn-secondary" style="margin-top:16px;" onclick="simulateAI()">🔍 开始 AI 识别匹配</button>
+                <div id="aiResult" style="margin-top:18px; background:white; border-radius:28px; padding:16px; min-height:60px; color:#1f2a44;">
+                    等待识别……
+                </div>
+            </div>
+            <div class="text-muted">* 当前为演示版本，AI匹配基于关键词模拟</div>
+        </div>
+
+        <!-- 个人中心 -->
+        <div id="page-profile" class="page">
+            <h3 style="color:#1f2a44;">👤 个人中心</h3>
+            <div style="background:#f8fafd; border-radius:30px; padding:24px 18px; margin:12px 0;">
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <div style="background:#1f3a6b; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:28px;">👤</div>
+                    <div>
+                        <div style="font-weight:700; font-size:18px;">刘馨兮</div>
+                        <div style="color:#4d5f7a;">学号: 202383290394</div>
+                    </div>
+                </div>
+                <hr>
+                <div style="display:flex; justify-content:space-around; text-align:center;">
+                    <div><span style="font-weight:700; font-size:18px;">3</span><br><span style="color:#5a6d89;">发布记录</span></div>
+                    <div><span style="font-weight:700; font-size:18px;">1</span><br><span style="color:#5a6d89;">匹配成功</span></div>
+                    <div><span style="font-weight:700; font-size:18px;">100%</span><br><span style="color:#5a6d89;">信用分</span></div>
+                </div>
+            </div>
+            <button class="btn-secondary" onclick="switchPage('home')">返回首页</button>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-tab">
+        <button class="tab-btn active" onclick="switchPage('home')">🏠 首页</button>
+        <button class="tab-btn" onclick="switchPage('publishLost')">📕 失物</button>
+        <button class="tab-btn" onclick="switchPage('publishFound')">📗 拾物</button>
+        <button class="tab-btn" onclick="switchPage('match')">🤖 AI</button>
+        <button class="tab-btn" onclick="switchPage('profile')">👤 我的</button>
+    </div>
+
+    <!-- 微小提示 -->
+    <div style="font-size:11px; color:#9aabbe; text-align:center; margin-top:20px;">南京信息工程大学 · 软件工程课程设计</div>
+</div>
+
+<script>
+    // ---------- 数据模拟 ----------
+    let lostItems = [
+        { id: 1, name: "黑色钱包", place: "图书馆二楼", contact: "138****2210", desc: "内含学生证，身份证" },
+        { id: 2, name: "白色耳机仓", place: "明德楼N103", contact: "QQ: 2024****", desc: "AirPods 左耳有贴纸" },
+        { id: 3, name: "蓝色水杯", place: "中苑田径场", contact: "手机 159****4532", desc: "杯身有南信大校徽" },
+    ];
+    let foundItems = [
+        { id: 101, name: "校园卡", place: "中苑食堂", finder: "张同学", storage: "食堂服务台" },
+        { id: 102, name: "笔记本", place: "明德楼N205", finder: "李同学", storage: "教学楼失物柜" },
+    ];
+
+    // 当前页面切换
+    function switchPage(pageId) {
+        // 隐藏所有页面
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        // 显示目标页面
+        const target = document.getElementById('page-' + pageId);
+        if (target) target.classList.add('active');
+
+        // 底部高亮
+        const tabMap = {
+            'home': 0,
+            'publishLost': 1,
+            'publishFound': 2,
+            'match': 3,
+            'profile': 4,
+        };
+        const idx = tabMap[pageId] || 0;
+        document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+            btn.classList.toggle('active', i === idx);
+        });
+
+        // 如果切到首页，刷新列表
+        if (pageId === 'home') renderLostList();
+    }
+
+    // 渲染失物列表
+    function renderLostList() {
+        const container = document.getElementById('lostList');
+        if (!container) return;
+        if (lostItems.length === 0) {
+            container.innerHTML = `<div style="padding:30px;text-align:center;color:#8a9bb0;">暂无失物记录，发布一条吧</div>`;
+            return;
+        }
+        let html = '';
+        lostItems.forEach(item => {
+            html += `<div class="item-card">
+                        <div class="info">
+                            <h4>${item.name}</h4>
+                            <p>📍 ${item.place} &nbsp;|&nbsp; 📞 ${item.contact}</p>
+                            <p style="font-size:13px; color:#586f8a;">${item.desc || ''}</p>
+                        </div>
+                        <span class="tag">丢失</span>
+                    </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // 提交失物
+    function submitLost() {
+        const name = document.getElementById('lostName').value.trim();
+        const place = document.getElementById('lostPlace').value.trim();
+        const contact = document.getElementById('lostContact').value.trim();
+        const desc = document.getElementById('lostDesc').value.trim();
+        if (!name || !place || !contact) {
+            alert('请至少填写物品名称、丢失地点和联系方式');
+            return;
+        }
+        lostItems.push({ id: Date.now(), name, place, contact, desc });
+        alert('✅ 失物发布成功！');
+        // 清空表单
+        document.getElementById('lostName').value = '';
+        document.getElementById('lostPlace').value = '';
+        document.getElementById('lostContact').value = '';
+        document.getElementById('lostDesc').value = '';
+        renderLostList();
+        switchPage('home');
+    }
+
+    // 提交拾物
+    function submitFound() {
+        const name = document.getElementById('foundName').value.trim();
+        const place = document.getElementById('foundPlace').value.trim();
+        const finder = document.getElementById('founder').value.trim() || '热心同学';
+        const storage = document.getElementById('foundStorage').value.trim() || '失物招领处';
+        if (!name || !place) {
+            alert('请填写拾到物品名称和地点');
+            return;
+        }
+        foundItems.push({ id: Date.now(), name, place, finder, storage });
+        alert('✅ 拾物信息已登记，感谢你的善举！');
+        document.getElementById('foundName').value = '';
+        document.getElementById('foundPlace').value = '';
+        document.getElementById('founder').value = '';
+        document.getElementById('foundStorage').value = '';
+        switchPage('home');
+    }
+
+    // 模拟 AI 匹配
+    function simulateAI() {
+        const resultDiv = document.getElementById('aiResult');
+        if (!resultDiv) return;
+        resultDiv.innerHTML = '⏳ 正在分析物品特征……';
+        setTimeout(() => {
+            // 随机匹配一条失物或拾物
+            const all = [...lostItems, ...foundItems];
+            if (all.length === 0) {
+                resultDiv.innerHTML = '暂无数据可匹配，请先发布信息。';
+                return;
+            }
+            const random = all[Math.floor(Math.random() * all.length)];
+            const type = random.contact ? '失物' : '拾物';
+            resultDiv.innerHTML = `
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <span style="background:#1f3a6b; color:white; border-radius:40px; padding:4px 14px; font-size:13px;">AI 匹配</span>
+                    <span><strong>${random.name}</strong> (${type})</span>
+                </div>
+                <div style="margin-top:12px; background:#eef5ff; border-radius:18px; padding:12px;">
+                    📍 ${random.place || '未知地点'} <br>
+                    ${random.contact ? '📞 ' + random.contact : '📦 存放于 ' + (random.storage || '失物招领处')}
+                </div>
+                <div style="margin-top:8px; color:#1f6b4a;">✨ 匹配度 87% · 建议尽快联系</div>
+            `;
+        }, 1200);
+    }
+
+    // 页面加载初始化
+    window.onload = function() {
+        renderLostList();
+        // 默认首页高亮已经在 html 中设置
+    };
+</script>
+</body>
+</html>
